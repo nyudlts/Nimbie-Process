@@ -144,6 +144,9 @@ namespace Nimbie_Rename_UI
                 CreateDirectories();
                 RenameFiles();
                 MoveDirectories();
+                RemoveEmptyDirectories();
+                UpdateMedialog();
+
             });
 
             Log("done.");
@@ -151,7 +154,7 @@ namespace Nimbie_Rename_UI
 
         private void FindManifest()
         {
-            var manifestPath = Path.Combine(imageDirectory!, "nimbie-manifest.txt");
+            var manifestPath = Path.Combine(imageDirectory!, "nimbie.txt");
             if (File.Exists(manifestPath))
             {
                 manifestFile = manifestPath;
@@ -163,10 +166,10 @@ namespace Nimbie_Rename_UI
 
         private void RemoveArtifacts()
         {
-            var allowedExtensions = new List<string>() { ".cdt", ".ccd" };
+            var restrictedExtensions = new List<string>() { ".cdt", ".ccd", ".DVD", ".MDS" };
             var artifacts = Directory
                 .GetFiles(imageDirectory!)
-                .Where(f => allowedExtensions.Contains(Path.GetExtension(f)))
+                .Where(f => restrictedExtensions.Contains(Path.GetExtension(f)))
                 .ToList();
 
             foreach (var artifact in artifacts)
@@ -183,7 +186,7 @@ namespace Nimbie_Rename_UI
 
         private void ConvertImgToWav()
         {
-            var allowedExtensions = new List<string>() { ".img" };
+            var allowedExtensions = new List<string>() { ".img", ".bin" };
             var imgPaths = Directory
                 .GetFiles(imageDirectory!)
                 .Where(f => allowedExtensions.Contains(Path.GetExtension(f)))
@@ -191,11 +194,20 @@ namespace Nimbie_Rename_UI
 
             foreach(string imgPath in imgPaths)
             {
-                var wavPath = imgPath.Replace(".img", ".wav");
+                string wavPath = "";
+                if(Path.GetExtension(imgPath) == ".img")
+                {
+                    wavPath = imgPath.Replace(".img", ".wav");
+                } else if (Path.GetExtension(imgPath) == ".bin") {
+                    wavPath = imgPath.Replace(".bin", ".wav");
+                }
+
                 if (testMode)
                 {
                     Log($"[TEST] converting {imgPath} to {wavPath}");
-                } else {
+                }
+                else
+                {
                     Log($"converting {imgPath} to {wavPath}");
                     byte[] audioData = File.ReadAllBytes(imgPath);
                     using (var fs = new FileStream(wavPath, FileMode.Create))
@@ -234,8 +246,6 @@ namespace Nimbie_Rename_UI
 
             }
         }
-
-
 
         private void CreateDirectories()
         {
@@ -294,7 +304,7 @@ namespace Nimbie_Rename_UI
                 var originalExtension = Path.GetExtension(originalPath).ToLower();
                 var targetFilename = newFilename + originalExtension;
                 var targetPath = Path.Combine(imageDirectory!, newFilename, targetFilename);
-                RenameFile(originalPath, targetPath, originalTimeStamp);
+                CopyFile(originalPath, targetPath, originalTimeStamp);
                 if(originalExtension == ".wav")
                 {
                     var originalCueFile = originalFilename.Replace(".wav", ".cue");
@@ -305,6 +315,8 @@ namespace Nimbie_Rename_UI
                     if (IsDVD(targetPath))
                     {
                         imageFormats.Add(newFilename, "video");
+                        
+                        generateCue(targetPath!);
                     } else
                     {
                         imageFormats.Add(newFilename, "data");
@@ -313,12 +325,12 @@ namespace Nimbie_Rename_UI
             }
         }
 
-        private void RenameFile(string originalPath, string newPath, DateTime timestamp)
+        private void CopyFile(string originalPath, string newPath, DateTime timestamp)
         {
-            Log($"renaming {originalPath} ({timestamp}) to {newPath}");
+            Log($"copying {originalPath} ({timestamp}) to {newPath}");
             try
             {
-                File.Move(originalPath, newPath);
+                File.Copy(originalPath, newPath);
             }
             catch (IOException ioEx)
             {
@@ -376,6 +388,51 @@ namespace Nimbie_Rename_UI
                 Log($"Moving {sourceDirectory} to {targetDirectory}");
                 Directory.Move(sourceDirectory, targetDirectory);
             }
+        }
+
+        private void RemoveEmptyDirectories()
+        {
+            var subDirectories = Directory.GetDirectories(imageDirectory!);
+
+            foreach (var subDirectory in subDirectories)
+            {
+                if (!Directory.EnumerateFileSystemEntries(subDirectory).Any())
+                {
+                    if (testMode)
+                    {
+                        Log($"[TEST] removing empty directory: {subDirectory}");
+                    }
+                    else
+                    {
+                        Log($"removing empty directory: {subDirectory}");
+                        Directory.Delete(subDirectory);
+                    }
+                }
+            }
+        }
+
+        private void generateCue(string isoPath)
+        {
+            Log(isoPath);
+
+            if (!File.Exists(isoPath))
+                throw new FileNotFoundException("ISO file not found.", isoPath);
+
+            string isoFileName = Path.GetFileName(isoPath);
+            string cuePath = Path.ChangeExtension(isoPath, ".cue");
+
+            string cueContent =
+$@"FILE ""{isoFileName}"" BINARY
+  TRACK 01 MODE1/2048";
+
+            File.WriteAllText(cuePath, cueContent);
+
+            Log($"Created: {cuePath}");
+        }
+
+        private void UpdateMedialog()
+        {
+
         }
 
     }
