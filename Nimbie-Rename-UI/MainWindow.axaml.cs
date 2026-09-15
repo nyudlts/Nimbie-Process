@@ -60,7 +60,7 @@ namespace Nimbie_Rename_UI
             });
         }
 
-        private void Log(string message)
+        internal void Log(string message)
         {
             Dispatcher.UIThread.Post(() =>
             {
@@ -90,6 +90,7 @@ namespace Nimbie_Rename_UI
             }
 
             var logFilePath = Path.Combine(imagePath, "nimbie-rename.log");
+            Log($"writing log file {logFilePath}");
             using var outputFile = File.Create(logFilePath);
             using var writer = new StreamWriter(outputFile);
             writer.Write(OutputBox.Text);
@@ -116,14 +117,9 @@ namespace Nimbie_Rename_UI
                 return;
             }
 
-            if (DryRunCheckBox.IsChecked == true)
-            {
-                testMode = true;
-            }
-            else
-            {
-                testMode = false;
-            }
+
+            testMode = false;
+            
 
             await Task.Run(() =>
             {
@@ -145,12 +141,35 @@ namespace Nimbie_Rename_UI
                 RenameFiles();
                 MoveDirectories();
                 RemoveEmptyDirectories();
-                UpdateMedialog();
-
+                MoveOriginalFiles();
+                
             });
-
+            SaveLog(sender, e);
             Log("done.");
         }
+
+        private async void UpdateMedialog(object? sender, RoutedEventArgs e)
+        {
+            Log("Updating medialog");
+            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
+            {
+                return;
+            }
+            imageDirectory = ImagePathBox.Text;
+
+            if (string.IsNullOrWhiteSpace(imageDirectory))
+            {
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                Medialog medialog = new Medialog(Log);
+                FindManifest();
+                medialog.PrintHello().Wait();
+                medialog.UpdateMedialog(imageDirectory, manifestFile);
+            });
+        }   
 
         private void FindManifest()
         {
@@ -240,8 +259,6 @@ namespace Nimbie_Rename_UI
                     File.SetCreationTimeUtc(wavPath, File.GetCreationTimeUtc(imgPath));
                     File.SetLastWriteTimeUtc(wavPath, File.GetLastWriteTimeUtc(imgPath));
                     File.SetLastAccessTimeUtc(wavPath, File.GetLastAccessTimeUtc(imgPath));
-                    Log($"deleting {imgPath}");
-                    File.Delete(imgPath);
                 }
 
             }
@@ -351,7 +368,7 @@ namespace Nimbie_Rename_UI
             var originalPath = Path.Combine(imageDirectory!, cueFile);
             var cuePath = Path.Combine(imageDirectory!, newFilename, newFilename + ".cue");
             var wavFile = newFilename + ".wav";
-            File.Move(originalPath, cuePath);
+            File.Copy(originalPath, cuePath);
             Log($"updating {cuePath}");
             var lines = File.ReadAllLines(cuePath);
             lines = Array.FindAll(lines, line => !line.TrimStart().StartsWith("CDTEXTFILE", StringComparison.OrdinalIgnoreCase));
@@ -433,6 +450,21 @@ $@"FILE ""{isoFileName}"" BINARY
         private void UpdateMedialog()
         {
 
+        }
+
+        private void MoveOriginalFiles()
+        {
+            var originalDir = Path.Combine(imageDirectory!, "original");
+            Directory.CreateDirectory(originalDir);
+
+            foreach (var file in Directory.GetFiles(imageDirectory!))
+            {
+                var newPath = Path.Combine(originalDir, Path.GetFileName(file));
+
+                Log($"moving {file} to {newPath}");
+
+                File.Move(file, newPath);
+            }
         }
 
     }

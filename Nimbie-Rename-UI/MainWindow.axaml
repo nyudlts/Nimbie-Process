@@ -32,11 +32,11 @@
 
 		<!-- Actions -->
 			<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
-				<Button Name="RunButton" Content="Run" Width="100" Click="RunProcess"/>
-				<CheckBox Name="DryRunCheckBox" Content="Dry Run (no file changes)"/>
-				<Button Content="Clear Log" Click="ClearLog"/>
-				<Button Content="Save Log" Click="SaveLog"/>
-				<Button Content="Exit" Click="ExitApp"/>
+				<Button Name="RunButton" Content="Rename" Width="100" Click="RunProcess"/>
+				<Button Name="UpdateButton" Content="Update Medialog" Width="100" Click="UpdateMedialog"/>
+				<Button Content="Clear Log" Width="100" Click="ClearLog"/>
+				<Button Content="Save Log" Width="100" Click="SaveLog"/>
+				<Button Content="Exit" Width="100" Click="ExitApp"/>
 			</StackPanel>
 
 
