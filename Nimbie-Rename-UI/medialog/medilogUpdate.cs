@@ -14,10 +14,12 @@ namespace Nimbie_Rename_UI
         private readonly Action<string> _log;
         private string medialogToken { get; set; }
         private HttpClient client { get; set; }
+        private Config config { get; set; }
 
         public Medialog(Action<string> log)
         {
             _log = log;
+            config = Config.GetConfig();
         }
 
         public async Task PrintHello()
@@ -43,9 +45,8 @@ namespace Nimbie_Rename_UI
         {
             client = new HttpClient();  
 
-
             //request a token from the Medialog API
-            var authRequest = await client.PostAsync("https://localhost:8080/api/v0/users/XXX/login?password=XXX", null);
+            var authRequest = await client.PostAsync($"{config.Host}/api/v0/users/{config.Username}/login?password={config.Password}", null);
             var jsonResponse = await authRequest.Content.ReadAsStringAsync();
             var doc = JsonDocument.Parse(jsonResponse);
             medialogToken = doc.RootElement.GetProperty("token").GetString();
