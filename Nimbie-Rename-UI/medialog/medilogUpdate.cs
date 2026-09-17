@@ -15,7 +15,8 @@ namespace Nimbie_Rename_UI
         private string medialogToken { get; set; }
         private HttpClient client { get; set; }
         private Config config { get; set; }
-
+        private string nimbieUser { get; set; }
+        private string imageDirectory { get; set; }
         public Medialog(Action<string> log)
         {
             _log = log;
@@ -27,20 +28,28 @@ namespace Nimbie_Rename_UI
             await Task.Run(() => _log("Hello, World!"));
         }
 
-        public async Task UpdateMedialog(string imageDirectory)
+        public async Task UpdateMedialog(string imgDirectory, string nimbieUsername)
         {
+            nimbieUser = nimbieUsername;
+            imageDirectory = imgDirectory;
             await SetToken();
             _log($"using token: {medialogToken}");
 
             foreach (var mediaType in new string[] {"audio","data","video"})
             {
+              
+               
                 var mediaTypePath = Path.Combine(imageDirectory, mediaType);
+               
+                
                 if (Directory.Exists(mediaTypePath))
                 {
+                    
                     var mediaDirectories = Directory.GetDirectories(mediaTypePath);
                     foreach (var mediaDirectory in mediaDirectories)
                     {
                         var mediaId = Path.GetFileName(mediaDirectory);
+                        
                         string imageFile;
                         if (mediaType == "audio")
                         {       
@@ -54,8 +63,13 @@ namespace Nimbie_Rename_UI
                         
                         await UpdateMedialogEntry(mediaId, imageFile, mediaType);
                     }
+                    
+                } else
+                {
+                    _log($"{mediaTypePath} does not exist");
                 }
                 
+
             }
         }
 
@@ -109,7 +123,18 @@ namespace Nimbie_Rename_UI
             entry.ImagingSoftware = "imaging_software_imgburn";
             entry.ImagingSuccess = "image_success_yes";
             entry.HddInterface = "hdd_interface_usb";
-            entry.ImagedBy = "Donald Mennerich";
+            entry.ImagedBy = nimbieUser;
+
+            //update the physical size
+            
+
+            var imagePath = Path.Join(imageDirectory, mediaType, mediaId, filename);
+            _log(imagePath);
+            _log(File.Exists(imagePath).ToString());
+            long size = new FileInfo(imagePath).Length;
+            entry.PhysicalSize = size;
+            
+            
             _log($"updated entry: {JsonSerializer.Serialize(entry)}");
             
             //update the entry

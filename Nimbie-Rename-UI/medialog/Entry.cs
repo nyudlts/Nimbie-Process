@@ -73,6 +73,8 @@ namespace Nimbie_Rename_UI
         public string Structure { get; set; }
         [JsonPropertyName("location")]
         public string Location { get; set; }
+        [JsonPropertyName("physical_size")]
+        public long? PhysicalSize { get; set; }
 
 
 

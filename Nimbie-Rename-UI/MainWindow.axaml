@@ -26,9 +26,20 @@
 					<Button Content="Browse" Click="PickImageFolder" Background="#CCCCCC" Grid.Column="0"/>
 					<TextBox Name="ImagePathBox" Margin="6,0,0,0" HorizontalAlignment="Stretch" Grid.Column="1" Background="#FFFFFF"/>
 				</Grid>
-
 			</StackPanel>
 		</Border>
+
+		<!-- USER-->
+		<Border Grid.Row="2" Padding="10" CornerRadius="8" Background="#003153">
+			<StackPanel Spacing="10">
+
+				<TextBlock Text="Nimbie User" Foreground="White"/>
+				<Grid ColumnDefinitions="Auto,*">
+					<TextBox Name="NimbieUserBox" Margin="6,0,0,0" HorizontalAlignment="Stretch" Grid.Column="1" Background="#FFFFFF"/>
+				</Grid>
+			</StackPanel>
+		</Border>
+		
 
 		<!-- Actions -->
 			<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
@@ -41,7 +52,7 @@
 
 
 		<!-- Output -->
-		<Border Grid.Row="5" Padding="8" CornerRadius="8" Background="#003153">
+		<Border Grid.Row="4" Padding="8" CornerRadius="8" Background="#003153">
 			<TextBox Name="OutputBox" AcceptsReturn="True" IsReadOnly="True" FontFamily="Consolas" Background="#FFFFFF" />
 		</Border>
 		

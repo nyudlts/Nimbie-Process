@@ -165,10 +165,11 @@ namespace Nimbie_Rename_UI
                 return;
             }
 
+            var nimbieUser = NimbieUserBox.Text;
             await Task.Run(() =>
             {
                 Medialog medialog = new Medialog(Log);
-                medialog.UpdateMedialog(imageDirectory);
+                medialog.UpdateMedialog(imageDirectory, nimbieUser);
             });
         }   
 
