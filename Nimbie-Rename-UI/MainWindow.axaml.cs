@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -45,6 +46,11 @@ namespace Nimbie_Rename_UI
 
             if (folder != null && folder.Count > 0)
                 ImagePathBox.Text = folder[0].Path.LocalPath;
+        }
+
+        public async void ShowAbout(object? sender, RoutedEventArgs e)
+        {
+            Log("About");
         }
 
         private async void PickManifestFile(object? sender, RoutedEventArgs e)

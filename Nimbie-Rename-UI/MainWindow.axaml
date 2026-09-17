@@ -7,55 +7,45 @@
         Title="Nimbie Iso Process"
 		Icon="/Assets/cd.ico">
 
+		<Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
+			  Margin="15"
+			  RowSpacing="12">
 
-	<Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
-		  Margin="15"
-		  RowSpacing="12">
+			<!-- Title -->
+			<TextBlock Text="Nimbie ISO Renamer"
+					   FontSize="22"
+					   FontWeight="Bold" />
 
-		<!-- Title -->
-		<TextBlock Text="Nimbie ISO Renamer"
-				   FontSize="22"
-				   FontWeight="Bold" />
+			<!-- Paths -->
+			<Border Grid.Row="1" Padding="10" CornerRadius="8" Background="#003153">
+				<StackPanel Spacing="10">
 
-		<!-- Paths -->
-		<Border Grid.Row="1" Padding="10" CornerRadius="8" Background="#003153">
-			<StackPanel Spacing="10">
-
-				<TextBlock Text="Nimbie Output Directory" Foreground="White"/>
-				<Grid ColumnDefinitions="Auto,*">
-					<Button Content="Browse" Click="PickImageFolder" Background="#CCCCCC" Grid.Column="0"/>
-					<TextBox Name="ImagePathBox" Margin="6,0,0,0" HorizontalAlignment="Stretch" Grid.Column="1" Background="#FFFFFF"/>
-				</Grid>
-			</StackPanel>
-		</Border>
-
-		<!-- USER-->
-		<Border Grid.Row="2" Padding="10" CornerRadius="8" Background="#003153">
-			<StackPanel Spacing="10">
-
-				<TextBlock Text="Nimbie User" Foreground="White"/>
-				<Grid ColumnDefinitions="Auto,*">
+					<TextBlock Text="Nimbie Output Directory" Foreground="White"/>
+					<Grid ColumnDefinitions="Auto,*">
+						<Button Content="Browse" Click="PickImageFolder" Background="#CCCCCC" Grid.Column="0"/>
+						<TextBox Name="ImagePathBox" Margin="6,0,0,0" HorizontalAlignment="Stretch" Grid.Column="1" Background="#FFFFFF"/>
+					</Grid>
+					<TextBlock Text="Nimbie User" Foreground="White"/>
 					<TextBox Name="NimbieUserBox" Margin="6,0,0,0" HorizontalAlignment="Stretch" Grid.Column="1" Background="#FFFFFF"/>
-				</Grid>
-			</StackPanel>
-		</Border>
-		
+				</StackPanel>
+			</Border>
 
-		<!-- Actions -->
+
+			<!-- Actions -->
 			<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
-				<Button Name="RunButton" Content="Rename" Width="100" Click="RunProcess"/>
-				<Button Name="UpdateButton" Content="Update Medialog" Width="100" Click="UpdateMedialog"/>
-				<Button Content="Clear Log" Width="100" Click="ClearLog"/>
-				<Button Content="Save Log" Width="100" Click="SaveLog"/>
-				<Button Content="Exit" Width="100" Click="ExitApp"/>
+				<Button Padding="15,8" Name="RunButton" Content="Rename" Click="RunProcess"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+				<Button Padding="15,8" Name="UpdateButton" Content="Update Medialog" Click="UpdateMedialog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+				<Button Padding="15,8" Content="Clear Log" Click="ClearLog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+				<Button Padding="15,8" Content="Save Log" Click="SaveLog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+				<Button Padding="15,8" Content="Exit" Click="ExitApp" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
 			</StackPanel>
 
 
-		<!-- Output -->
-		<Border Grid.Row="4" Padding="8" CornerRadius="8" Background="#003153">
-			<TextBox Name="OutputBox" AcceptsReturn="True" IsReadOnly="True" FontFamily="Consolas" Background="#FFFFFF" />
-		</Border>
-		
-	</Grid>
+			<!-- Output -->
+			<Border Grid.Row="4" Padding="8" CornerRadius="8" Background="#003153">
+				<TextBox Name="OutputBox" AcceptsReturn="True" IsReadOnly="True" FontFamily="Consolas" Background="#FFFFFF" />
+			</Border>
+
+		</Grid>
 
 </Window>
