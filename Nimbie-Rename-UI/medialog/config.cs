@@ -18,7 +18,7 @@ namespace Nimbie_Rename_UI
 
         public static Config GetConfig()
         {
-            string json = File.ReadAllText("C:\\nimbie-config.json");
+            string json = File.ReadAllText("C:\\Users\\don\\nimbie-config.json");
             Config config = JsonSerializer.Deserialize<Config>(json)!;
             return config;
         }

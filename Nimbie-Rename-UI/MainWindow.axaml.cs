@@ -144,6 +144,7 @@ namespace Nimbie_Rename_UI
                 MoveDirectories();
                 RemoveEmptyDirectories();
                 MoveOriginalFiles();
+                UpdateMedialog();
                 
             });
             SaveLog(sender, e);
@@ -167,9 +168,7 @@ namespace Nimbie_Rename_UI
             await Task.Run(() =>
             {
                 Medialog medialog = new Medialog(Log);
-                FindManifest();
-                medialog.PrintHello().Wait();
-                medialog.UpdateMedialog(imageDirectory, manifestFile);
+                medialog.UpdateMedialog(imageDirectory);
             });
         }   
 

@@ -30,7 +30,7 @@ namespace Nimbie_Rename_UI
         [JsonPropertyName("hdd_interface")]
         public string HddInterface { get; set; }
         [JsonPropertyName("imaging_success")]
-        public string ImagingSuccess { get; set; }
+        public string? ImagingSuccess { get; set; }
         [JsonPropertyName("image_filename")]
         public string ImageFilename { get; set; }
         [JsonPropertyName("interface")]
