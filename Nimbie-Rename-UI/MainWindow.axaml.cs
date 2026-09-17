@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Nimbie_Rename_UI
@@ -322,6 +324,9 @@ namespace Nimbie_Rename_UI
                 var targetFilename = newFilename + originalExtension;
                 var targetPath = Path.Combine(imageDirectory!, newFilename, targetFilename);
                 CopyFile(originalPath, targetPath, originalTimeStamp);
+                WriteMD5File(targetPath);
+
+
                 if(originalExtension == ".wav")
                 {
                     var originalCueFile = originalFilename.Replace(".wav", ".cue");
@@ -337,9 +342,40 @@ namespace Nimbie_Rename_UI
                     } else
                     {
                         imageFormats.Add(newFilename, "data");
+                        ///move the cue and md5 if they exist
+                        string cuePath = Path.ChangeExtension(originalPath, ".CUE");
+                        if(File.Exists(cuePath))
+                        {
+                            var targetCUEPath = Path.ChangeExtension(targetPath, ".cue");
+                            CopyFile(cuePath, targetCUEPath, originalTimeStamp);
+                            Log($"updating {targetCUEPath}");
+                            var lines = File.ReadAllLines(targetCUEPath);
+                            lines = Array.FindAll(lines, line => !line.TrimStart().StartsWith("CDTEXTFILE", StringComparison.OrdinalIgnoreCase));
+                            lines = lines.Select(line =>
+                            {
+                                if (line.TrimStart().StartsWith("FILE ", StringComparison.OrdinalIgnoreCase))
+                                    return $"FILE \"{newFilename}.iso\" BINARY";
+                                return line;
+                            }).ToArray();
+
+                            File.WriteAllLines(targetCUEPath, lines);
+                        }
                     }
                 }
             }
+        }
+
+        private string WriteMD5File(string filePath)
+        {
+            Log($"DEBUG: {filePath}");
+            byte[] hash = MD5.HashData(File.ReadAllBytes(filePath));
+            string md5 = Convert.ToHexString(hash).ToLowerInvariant();
+            Log($"DEBUG: {md5}");
+            var md5Path = Path.ChangeExtension(filePath, ".md5");
+            var md5Line = $"{md5}  {Path.GetFileName(filePath)}";
+            Log($"DEBUG {md5Line}");
+            File.WriteAllText(md5Path, md5Line);
+            return md5;
         }
 
         private void CopyFile(string originalPath, string newPath, DateTime timestamp)

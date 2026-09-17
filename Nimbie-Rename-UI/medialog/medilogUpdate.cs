@@ -65,7 +65,7 @@ namespace Nimbie_Rename_UI
             var responseJson = await getResourceIDResponse.Content.ReadAsStringAsync();
             var doc = JsonDocument.Parse(responseJson);
             var resourceId = doc.RootElement.GetProperty("resource_id").GetUInt32();
-            _log($"{resourceId}");
+            _log($"found resourceId: {resourceId}");
 
 
             //get the entryID <- this can be done server side, but for now we will do it client side
@@ -80,6 +80,7 @@ namespace Nimbie_Rename_UI
                 throw new Exception($"No entry found for media ID {mediaId}.");
             }
             var entryId = entryMatch.Value.Key;
+            _log($"found entryId: {entryId}");
 
             //get the entry
             var getEntryRequest = new HttpRequestMessage(HttpMethod.Get, $"https://localhost:8080/api/v0/entries/{entryId}");
