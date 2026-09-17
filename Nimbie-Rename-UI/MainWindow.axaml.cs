@@ -171,12 +171,11 @@ namespace Nimbie_Rename_UI
                 return;
             }
 
-            var nimbieUser = NimbieUserBox.Text;
-            await Task.Run(() =>
-            {
-                Medialog medialog = new Medialog(Log);
-                medialog.UpdateMedialog(imageDirectory, nimbieUser);
-            });
+            var nimbieUser = NimbieUserBox.Text ?? throw new Exception("Nimbe User Cannot Be Null");
+
+            Medialog medialog = new (Log);
+            await medialog.UpdateMedialog(imageDirectory, nimbieUser);
+            
         }   
 
         private void FindManifest()
@@ -321,7 +320,7 @@ namespace Nimbie_Rename_UI
             var sortedFileDates = imageFiles.OrderBy(x => x.Value).ToList();
             for (int i = 0; i < sortedFileDates.Count; i++)
             {
-                var newFilename = filenames[i];
+                var newFilename = filenames![i];
                 var fileDate = sortedFileDates[i];
                 var originalPath = fileDate.Key;
                 var originalTimeStamp = fileDate.Value;

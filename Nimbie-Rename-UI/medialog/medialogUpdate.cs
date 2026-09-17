@@ -84,8 +84,6 @@ namespace Nimbie_Rename_UI
 
         private async Task SetToken()
         {
-            Client = new HttpClient();  
-
             //request a token from the Medialog API
             var authRequest = await Client.PostAsync($"{AppConfig.Host}/api/v0/users/{AppConfig.Username}/login?password={AppConfig.Password}", null);
             var jsonResponse = await authRequest.Content.ReadAsStringAsync();
@@ -98,7 +96,7 @@ namespace Nimbie_Rename_UI
         {
             try
             {
-                var (collectionCode, mediaNum) = await ParseIdentifier(mediaId);
+                var (collectionCode, mediaNum) = ParseIdentifier(mediaId);
                 UInt32 resourceId = await getResourceId(collectionCode);
                 _log($"resourceId: {resourceId}");
                 string entryId = await GetEntryId(resourceId, mediaNum);
@@ -134,7 +132,7 @@ namespace Nimbie_Rename_UI
                 entry.ImagingSoftware = "imaging_software_imgburn";
                 entry.ImagingSuccess = "image_success_yes";
                 entry.HddInterface = "hdd_interface_usb";
-                entry.ImagedBy = NimbieUser ?? "Not Entered";
+                entry.ImagedBy = NimbieUser!;
 
                 var imagePath = Path.Join(ImageDirectory, mediaType, mediaId, filename);
                 _log(imagePath);
@@ -155,7 +153,7 @@ namespace Nimbie_Rename_UI
             }
         }
 
-        private async Task<(string cId, string mId)> ParseIdentifier(string identifier)
+        private (string cId, string mId) ParseIdentifier(string identifier)
         {
             var parts = identifier.Split('_');
             var resourceID1 = parts[parts.Length - 3].ToLower();
