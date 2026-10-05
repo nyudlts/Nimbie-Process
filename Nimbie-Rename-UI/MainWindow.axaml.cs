@@ -131,18 +131,28 @@ namespace Nimbie_Rename_UI
 
             await Task.Run(() =>
             {
-                if (testMode)
-                {
-                    Log("running in test mode");
-                }
 
+                // Check if the image directory exists
                 if (!Directory.Exists(imageDirectory))
                 {
                     Log("Invalid paths.");
                     return;
                 }
 
-                FindManifest();
+                // Check if the manifest file exists
+                if (!FindManifest())
+                {
+                    return;                    
+                }
+
+                //check that the manifest file is valid
+                if (!ValidateManifest())
+                {
+                    Log("Manifest validation failed.");
+                    return;
+                }
+
+
                 RemoveArtifacts();
                 ConvertImgToWav();
                 CreateDirectories();
@@ -150,45 +160,58 @@ namespace Nimbie_Rename_UI
                 MoveDirectories();
                 RemoveEmptyDirectories();
                 MoveOriginalFiles();
-                UpdateMedialog();
+                //UpdateMedialog();
                 
             });
             SaveLog(sender, e);
             Log("done.");
         }
 
-        private async void UpdateMedialog(object? sender, RoutedEventArgs e)
-        {
-            Log("Updating medialog");
-            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
-            {
-                return;
-            }
-            imageDirectory = ImagePathBox.Text;
-
-            if (string.IsNullOrWhiteSpace(imageDirectory))
-            {
-                return;
-            }
-
-            var nimbieUser = NimbieUserBox.Text ?? throw new Exception("Nimbe User Cannot Be Null");
-
-            Medialog medialog = new (Log);
-            await medialog.UpdateMedialog(imageDirectory, nimbieUser);
-            
-        }   
-
-        private void FindManifest()
+        private bool FindManifest()
         {
             var manifestPath = Path.Combine(imageDirectory!, "nimbie.txt");
             if (File.Exists(manifestPath))
             {
                 manifestFile = manifestPath;
-            } else
+                return true;
+            }
+            else
             {
-                Log($"Found {manifestFile}");
+                Log($"{manifestFile} missing");
+                return false;
             }
         }
+
+        private bool ValidateManifest()
+        {
+
+            filenames = File.ReadLines(manifestFile!).ToList();
+            if (filenames.Count == 0)
+            {
+                Log("Manifest file is empty.");
+                return false;
+            }
+            foreach (var filename in filenames)
+            {
+                Log($"{filename}");
+            }
+
+            var imgCount = Directory.EnumerateFiles(imageDirectory!)
+                .Count(file => file.EndsWith(".iso", StringComparison.OrdinalIgnoreCase)
+                    || file.EndsWith(".bin", StringComparison.OrdinalIgnoreCase));
+
+            if (filenames.Count != imgCount)
+            {
+                Log($"Manifest file count ({filenames.Count}) does not match image file count ({imgCount}).");
+                return false;
+            }
+
+
+            Log($"Manifest file count ({filenames.Count}) matches image file count ({imgCount}).");
+            return true;
+        } 
+
+
 
         private void RemoveArtifacts()
         {
@@ -421,6 +444,27 @@ namespace Nimbie_Rename_UI
             }).ToArray();
 
             File.WriteAllLines(cuePath, lines);
+        }
+
+        private async void UpdateMedialog(object? sender, RoutedEventArgs e)
+        {
+            Log("Updating medialog");
+            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
+            {
+                return;
+            }
+            imageDirectory = ImagePathBox.Text;
+
+            if (string.IsNullOrWhiteSpace(imageDirectory))
+            {
+                return;
+            }
+
+            var nimbieUser = NimbieUserBox.Text ?? throw new Exception("Nimbe User Cannot Be Null");
+
+            Medialog medialog = new(Log);
+            await medialog.UpdateMedialog(imageDirectory, nimbieUser);
+
         }
 
         private bool IsDVD(string isoPath)
