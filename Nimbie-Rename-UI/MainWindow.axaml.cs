@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -160,7 +158,7 @@ namespace Nimbie_Rename_UI
                 MoveDirectories();
                 RemoveEmptyDirectories();
                 MoveOriginalFiles();
-                //UpdateMedialog();
+                UpdateMedialog();
                 
             });
             SaveLog(sender, e);
@@ -209,9 +207,7 @@ namespace Nimbie_Rename_UI
 
             Log($"Manifest file count ({filenames.Count}) matches image file count ({imgCount}).");
             return true;
-        } 
-
-
+        }
 
         private void RemoveArtifacts()
         {
@@ -223,13 +219,15 @@ namespace Nimbie_Rename_UI
 
             foreach (var artifact in artifacts)
             {
-                if (testMode){
+                if (testMode)
+                {
                     Log($"[TEST] removing {artifact}");
-                } else
+                }
+                else
                 {
                     Log($"removing {artifact}");
                     File.Delete(artifact);
-                }     
+                }
             }
         }
 
@@ -393,6 +391,77 @@ namespace Nimbie_Rename_UI
             }
         }
 
+        private void MoveDirectories()
+        {
+            foreach (KeyValuePair<string, string> imgFormat in imageFormats)
+            {
+                var sourceDirectory = Path.Combine(imageDirectory!, imgFormat.Key);
+                var targetDirectory = Path.Combine(imageDirectory!, imgFormat.Value, imgFormat.Key);
+                Log($"Moving {sourceDirectory} to {targetDirectory}");
+                Directory.Move(sourceDirectory, targetDirectory);
+            }
+        }
+
+        private void RemoveEmptyDirectories()
+        {
+            var subDirectories = Directory.GetDirectories(imageDirectory!);
+
+            foreach (var subDirectory in subDirectories)
+            {
+                if (!Directory.EnumerateFileSystemEntries(subDirectory).Any())
+                {
+                    if (testMode)
+                    {
+                        Log($"[TEST] removing empty directory: {subDirectory}");
+                    }
+                    else
+                    {
+                        Log($"removing empty directory: {subDirectory}");
+                        Directory.Delete(subDirectory);
+                    }
+                }
+            }
+        }
+
+        private void MoveOriginalFiles()
+        {
+            var originalDir = Path.Combine(imageDirectory!, "original");
+            Directory.CreateDirectory(originalDir);
+
+            foreach (var file in Directory.GetFiles(imageDirectory!))
+            {
+                var newPath = Path.Combine(originalDir, Path.GetFileName(file));
+
+                Log($"moving {file} to {newPath}");
+
+                File.Move(file, newPath);
+            }
+        }
+
+        private async void UpdateMedialog(object? sender, RoutedEventArgs e)
+        {
+            Log("Updating medialog");
+            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
+            {
+                return;
+            }
+            imageDirectory = ImagePathBox.Text;
+
+            if (string.IsNullOrWhiteSpace(imageDirectory))
+            {
+                return;
+            }
+
+            if(string.IsNullOrWhiteSpace(NimbieUserBox.Text)) {
+                Log("Nimbie username can not be blank");
+                return;
+            }
+
+            Medialog medialog = new(Log);
+            await medialog.UpdateMedialog(imageDirectory, NimbieUserBox.Text);
+
+        }
+
         private string WriteMD5File(string filePath)
         {
             Log($"DEBUG: {filePath}");
@@ -446,27 +515,6 @@ namespace Nimbie_Rename_UI
             File.WriteAllLines(cuePath, lines);
         }
 
-        private async void UpdateMedialog(object? sender, RoutedEventArgs e)
-        {
-            Log("Updating medialog");
-            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
-            {
-                return;
-            }
-            imageDirectory = ImagePathBox.Text;
-
-            if (string.IsNullOrWhiteSpace(imageDirectory))
-            {
-                return;
-            }
-
-            var nimbieUser = NimbieUserBox.Text ?? throw new Exception("Nimbe User Cannot Be Null");
-
-            Medialog medialog = new(Log);
-            await medialog.UpdateMedialog(imageDirectory, nimbieUser);
-
-        }
-
         private bool IsDVD(string isoPath)
         {
             using var isoStream = File.OpenRead(isoPath);
@@ -480,37 +528,6 @@ namespace Nimbie_Rename_UI
 
             return cd.GetDirectories(@"\").Any(dir =>
                 string.Equals(Path.GetFileName(dir), "VIDEO_TS", StringComparison.OrdinalIgnoreCase));
-        }
-
-        private void MoveDirectories()
-        {
-            foreach (KeyValuePair<string, string> imgFormat in imageFormats) {
-                var sourceDirectory = Path.Combine(imageDirectory!, imgFormat.Key);
-                var targetDirectory = Path.Combine(imageDirectory!, imgFormat.Value, imgFormat.Key);
-                Log($"Moving {sourceDirectory} to {targetDirectory}");
-                Directory.Move(sourceDirectory, targetDirectory);
-            }
-        }
-
-        private void RemoveEmptyDirectories()
-        {
-            var subDirectories = Directory.GetDirectories(imageDirectory!);
-
-            foreach (var subDirectory in subDirectories)
-            {
-                if (!Directory.EnumerateFileSystemEntries(subDirectory).Any())
-                {
-                    if (testMode)
-                    {
-                        Log($"[TEST] removing empty directory: {subDirectory}");
-                    }
-                    else
-                    {
-                        Log($"removing empty directory: {subDirectory}");
-                        Directory.Delete(subDirectory);
-                    }
-                }
-            }
         }
 
         private void generateCue(string isoPath)
@@ -535,21 +552,6 @@ $@"FILE ""{isoFileName}"" BINARY
         private void UpdateMedialog()
         {
 
-        }
-
-        private void MoveOriginalFiles()
-        {
-            var originalDir = Path.Combine(imageDirectory!, "original");
-            Directory.CreateDirectory(originalDir);
-
-            foreach (var file in Directory.GetFiles(imageDirectory!))
-            {
-                var newPath = Path.Combine(originalDir, Path.GetFileName(file));
-
-                Log($"moving {file} to {newPath}");
-
-                File.Move(file, newPath);
-            }
         }
 
     }

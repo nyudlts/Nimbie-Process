@@ -1,6 +1,7 @@
 ﻿using System;
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -31,6 +32,7 @@ namespace Nimbie_Rename_UI
 
         public async Task UpdateMedialog(string imgDirectory, string nimbieUsername)
         {
+
             NimbieUser = nimbieUsername;
             ImageDirectory = imgDirectory;
 
@@ -41,6 +43,7 @@ namespace Nimbie_Rename_UI
             catch (Exception ex)
             {
                 _log($"ERROR: {ex.Message}");
+                return;
             }
             _log($"using token: {MedialogToken}");
 
@@ -90,7 +93,6 @@ namespace Nimbie_Rename_UI
             var doc = JsonDocument.Parse(jsonResponse);
             MedialogToken = doc.RootElement.GetProperty("token").GetString();
         }
-
 
         private async Task UpdateMedialogEntry(string mediaId, string filename, string mediaType)
         {
@@ -166,7 +168,7 @@ namespace Nimbie_Rename_UI
         private async Task<UInt32> getResourceId(string collectionCode)
         {
             
-            var getResourceIDRequest = new HttpRequestMessage(HttpMethod.Get, $"https://localhost:8080/api/v0/resources/find/{collectionCode}");
+            var getResourceIDRequest = new HttpRequestMessage(HttpMethod.Get, $"{AppConfig.Host}/api/v0/resources/find/{collectionCode}");
             getResourceIDRequest.Headers.Add("X-Medialog-Token", MedialogToken);
             var getResourceIDResponse = await Client.SendAsync(getResourceIDRequest);
             var responseJson = await getResourceIDResponse.Content.ReadAsStringAsync();
@@ -177,7 +179,7 @@ namespace Nimbie_Rename_UI
         private async Task<string> GetEntryId(UInt32 resourceId, string mediaId)
         {
             //get the entryID <- this can be done server side, but for now we will do it client side
-            var getEntryMapRequest = new HttpRequestMessage(HttpMethod.Get, $"https://localhost:8080/api/v0/resources/{resourceId}/entry_and_media_ids");
+            var getEntryMapRequest = new HttpRequestMessage(HttpMethod.Get, $"{AppConfig.Host}/api/v0/resources/{resourceId}/entry_and_media_ids");
             getEntryMapRequest.Headers.Add("X-Medialog-Token", MedialogToken);
             var getEntryMapResponse = await Client.SendAsync(getEntryMapRequest);
             var getEntryMapJson = await getEntryMapResponse.Content.ReadAsStringAsync();
@@ -189,7 +191,7 @@ namespace Nimbie_Rename_UI
 
         private async Task<Entry> getEntry(string entryId)
         {
-            var getEntryRequest = new HttpRequestMessage(HttpMethod.Get, $"https://localhost:8080/api/v0/entries/{entryId}");
+            var getEntryRequest = new HttpRequestMessage(HttpMethod.Get, $"{AppConfig.Host}/api/v0/entries/{entryId}");
             getEntryRequest.Headers.Add("X-Medialog-Token", MedialogToken);
             var getEntryResponse = await Client.SendAsync(getEntryRequest);
             var getEntryJson = await getEntryResponse.Content.ReadAsStringAsync();
@@ -200,7 +202,7 @@ namespace Nimbie_Rename_UI
 
         private async Task<string> postUpdatedEntry(Entry entry)
         {
-            var postUpdateEntryRequest = new HttpRequestMessage(HttpMethod.Post, $"https://localhost:8080/api/v0/entries/{entry.Id}/update");
+            var postUpdateEntryRequest = new HttpRequestMessage(HttpMethod.Post, $"{AppConfig.Host}/api/v0/entries/{entry.Id}/update");
             postUpdateEntryRequest.Headers.Add("X-Medialog-Token", MedialogToken);
             postUpdateEntryRequest.Content = new StringContent(JsonSerializer.Serialize(entry), System.Text.Encoding.UTF8, "application/json");
             var postUpdateEntryResponse = await Client.SendAsync(postUpdateEntryRequest);

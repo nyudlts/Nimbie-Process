@@ -8,17 +8,17 @@ namespace Nimbie_Rename_UI
     public class Config
     {
         [JsonPropertyName("host")]
-        public string Host { get; set; }
+        public string? Host { get; set; }
 
         [JsonPropertyName("username")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [JsonPropertyName("password")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public static Config GetConfig()
         {
-            string json = File.ReadAllText("C:\\Users\\don\\nimbie-config.json");
+            string json = File.ReadAllText("C:\\Users\\dm3053.AD\\nimbie-config.json");
             Config config = JsonSerializer.Deserialize<Config>(json)!;
             return config;
         }
