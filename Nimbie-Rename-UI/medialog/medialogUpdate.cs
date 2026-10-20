@@ -17,6 +17,7 @@ namespace Nimbie_Rename_UI
         private HttpClient Client { get; set; }
         private Config AppConfig { get; set; }
         private string? NimbieUser { get; set; }
+        private string? NimbieBoxNum { get; set; }
         private string? ImageDirectory { get; set; }
         public Medialog(Action<string> log)
         {
@@ -30,10 +31,11 @@ namespace Nimbie_Rename_UI
             await Task.Run(() => _log("Hello, World!"));
         }
 
-        public async Task UpdateMedialog(string imgDirectory, string nimbieUsername)
+        public async Task UpdateMedialog(string imgDirectory, string nimbieUsername, string nimbieBoxNum)
         {
 
             NimbieUser = nimbieUsername;
+            NimbieBoxNum = nimbieBoxNum;
             ImageDirectory = imgDirectory;
 
             try
@@ -135,6 +137,11 @@ namespace Nimbie_Rename_UI
                 entry.ImagingSuccess = "image_success_yes";
                 entry.HddInterface = "hdd_interface_usb";
                 entry.ImagedBy = NimbieUser!;
+                if (!string.IsNullOrEmpty(NimbieBoxNum))
+                {
+                    _log("Setting BoxNumber to " + NimbieBoxNum);
+                    entry.BoxNumber = NimbieBoxNum!;
+                }
 
                 var imagePath = Path.Join(ImageDirectory, mediaType, mediaId, filename);
                 _log(imagePath);

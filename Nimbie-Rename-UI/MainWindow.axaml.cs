@@ -458,8 +458,8 @@ namespace Nimbie_Rename_UI
             }
 
             Medialog medialog = new(Log);
-            await medialog.UpdateMedialog(imageDirectory, NimbieUserBox.Text);
-
+            await medialog.UpdateMedialog(imageDirectory, NimbieUserBox.Text, NimbieBoxNum.Text);
+            
         }
 
         private string WriteMD5File(string filePath)
