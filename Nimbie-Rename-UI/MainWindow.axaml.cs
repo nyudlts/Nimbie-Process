@@ -19,11 +19,13 @@ namespace Nimbie_Rename_UI
         const short channels = 2;
         bool testMode;
         string? imageDirectory;
+        string? updateDirectory;
         string? manifestFile;
         List<string>? filenames;
         List<string> metaFormats = new List<string>() {"audio", "video", "data" };
         Dictionary<string, string> imageFormats = new Dictionary<string, string>() { };
         StreamWriter? LogWriter;
+        StreamWriter? UpdateLogWriter;
         const string Version = "0.1.0-beta";
 
         public MainWindow()
@@ -43,16 +45,42 @@ namespace Nimbie_Rename_UI
             {
                 AllowMultiple = false
             });
-            
-            if (folder != null && folder.Count > 0)
+
+            if (folder != null && folder.Count > 0) 
+            {
                 ImagePathBox.Text = folder[0].Path.LocalPath;
 
-            //start the logWriter
-            LogWriter = new StreamWriter(Path.Combine(ImagePathBox.Text, "nimbie-rename.log"), append: false);
-            Log($"Nimbie Process, v{Version}");
-            Log("Writing log to "+ ImagePathBox.Text);
-           
+                //start the logWriter 
+                LogWriter = new StreamWriter(Path.Combine(ImagePathBox.Text!, "nimbie-rename.log"), append: false);
+                Log($"Nimbie Process, v{Version}");
+                Log("Writing log to " + ImagePathBox.Text!);
+            }
+
 ;        }
+
+        private async void PickRenameFolder(object? sender, RoutedEventArgs e)
+        {
+            if (StorageProvider is null)
+            {
+                Log("StorageProvider is not available.");
+                return;
+            }
+
+            var folder = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                AllowMultiple = false
+            });
+
+            if (folder != null && folder.Count > 0)
+            {
+                RenamePathBox.Text = folder[0].Path.LocalPath;
+                var LogLocation = Path.Combine(RenamePathBox.Text!, "nimbie-update.log");
+                UpdateLogWriter = new StreamWriter(LogLocation, append: false);
+                LogUpdate($"Nimbie Process, v{Version}");
+                LogUpdate("Writing log to " + LogLocation);
+            }
+
+        }
 
         internal void Log(string message)
         {
@@ -61,6 +89,16 @@ namespace Nimbie_Rename_UI
                 OutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
                 LogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
                 LogWriter.Flush();
+            });
+        }
+
+        internal void LogUpdate(string message)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                UpdateOutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
+                UpdateLogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
+                UpdateLogWriter.Flush();
             });
         }
 
@@ -100,7 +138,7 @@ namespace Nimbie_Rename_UI
         }
 
 
-        private async void RunProcess(object? sender, RoutedEventArgs e)
+        private async void RenameFiles(object? sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
             {
@@ -148,8 +186,6 @@ namespace Nimbie_Rename_UI
                 MoveDirectories();
                 RemoveEmptyDirectories();
                 MoveOriginalFiles();
-                UpdateMedialog();
-                
             });
             Log("process complete");
         }
@@ -434,25 +470,31 @@ namespace Nimbie_Rename_UI
 
         private async void UpdateMedialog(object? sender, RoutedEventArgs e)
         {
-            Log("Updating medialog");
-            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
+            LogUpdate("Updating medialog");
+            if (string.IsNullOrWhiteSpace(RenamePathBox.Text))
             {
                 return;
             }
-            imageDirectory = ImagePathBox.Text;
+            updateDirectory = RenamePathBox.Text;
 
-            if (string.IsNullOrWhiteSpace(imageDirectory))
+            if (string.IsNullOrWhiteSpace(updateDirectory))
             {
                 return;
             }
 
             if(string.IsNullOrWhiteSpace(NimbieUserBox.Text)) {
-                Log("Nimbie username can not be blank");
+                LogUpdate("Username can not be blank");
                 return;
             }
 
-            Medialog medialog = new(Log);
-            await medialog.UpdateMedialog(imageDirectory, NimbieUserBox.Text, NimbieBoxNum.Text);
+            if (string.IsNullOrWhiteSpace(NimbieBoxNum.Text))
+            {
+                LogUpdate("box number can not be blank");
+                return;
+            }
+
+            Medialog medialog = new(LogUpdate);
+            await medialog.UpdateMedialog(updateDirectory, NimbieUserBox.Text, NimbieBoxNum.Text!);
             
         }
 
