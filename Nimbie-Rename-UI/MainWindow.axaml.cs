@@ -24,6 +24,7 @@ namespace Nimbie_Rename_UI
         List<string> metaFormats = new List<string>() {"audio", "video", "data" };
         Dictionary<string, string> imageFormats = new Dictionary<string, string>() { };
         StreamWriter? LogWriter;
+        const string Version = "0.1.0-beta";
 
         public MainWindow()
         {
@@ -48,14 +49,10 @@ namespace Nimbie_Rename_UI
 
             //start the logWriter
             LogWriter = new StreamWriter(Path.Combine(ImagePathBox.Text, "nimbie-rename.log"), append: false);
+            Log($"Nimbie Process, v{Version}");
             Log("Writing log to "+ ImagePathBox.Text);
            
 ;        }
-
-        public async void ShowAbout(object? sender, RoutedEventArgs e)
-        {
-            Log("About");
-        }
 
         internal void Log(string message)
         {
