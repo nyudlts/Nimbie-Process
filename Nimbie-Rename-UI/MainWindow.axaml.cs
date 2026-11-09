@@ -23,6 +23,7 @@ namespace Nimbie_Rename_UI
         List<string>? filenames;
         List<string> metaFormats = new List<string>() {"audio", "video", "data" };
         Dictionary<string, string> imageFormats = new Dictionary<string, string>() { };
+        StreamWriter? LogWriter;
 
         public MainWindow()
         {
@@ -41,29 +42,19 @@ namespace Nimbie_Rename_UI
             {
                 AllowMultiple = false
             });
-
+            
             if (folder != null && folder.Count > 0)
                 ImagePathBox.Text = folder[0].Path.LocalPath;
-        }
+
+            //start the logWriter
+            LogWriter = new StreamWriter(Path.Combine(ImagePathBox.Text, "nimbie-rename.log"), append: false);
+            Log("Writing log to "+ ImagePathBox.Text);
+           
+;        }
 
         public async void ShowAbout(object? sender, RoutedEventArgs e)
         {
             Log("About");
-        }
-
-        private async void PickManifestFile(object? sender, RoutedEventArgs e)
-        {
-            if (StorageProvider is null)
-            {
-                Log("StorageProvider is not available.");
-                return;
-            }
-
-            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                AllowMultiple = false,
-                FileTypeFilter = null // You can add filters if needed
-            });
         }
 
         internal void Log(string message)
@@ -71,6 +62,8 @@ namespace Nimbie_Rename_UI
             Dispatcher.UIThread.Post(() =>
             {
                 OutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
+                LogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
+                LogWriter.Flush();
             });
         }
 
@@ -161,8 +154,7 @@ namespace Nimbie_Rename_UI
                 UpdateMedialog();
                 
             });
-            SaveLog(sender, e);
-            Log("done.");
+            Log("process complete");
         }
 
         private bool FindManifest()
@@ -211,7 +203,7 @@ namespace Nimbie_Rename_UI
 
         private void RemoveArtifacts()
         {
-            var restrictedExtensions = new List<string>() { ".cdt", ".ccd", ".DVD", ".MDS" };
+            var restrictedExtensions = new List<string>() { ".ccd", ".DVD", ".MDS" };
             var artifacts = Directory
                 .GetFiles(imageDirectory!)
                 .Where(f => restrictedExtensions.Contains(Path.GetExtension(f)))
@@ -399,6 +391,7 @@ namespace Nimbie_Rename_UI
                 var targetDirectory = Path.Combine(imageDirectory!, imgFormat.Value, imgFormat.Key);
                 Log($"Moving {sourceDirectory} to {targetDirectory}");
                 Directory.Move(sourceDirectory, targetDirectory);
+                
             }
         }
 
@@ -430,6 +423,10 @@ namespace Nimbie_Rename_UI
 
             foreach (var file in Directory.GetFiles(imageDirectory!))
             {
+                if (Path.GetFileName(file).Equals("nimbie-rename.log", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
                 var newPath = Path.Combine(originalDir, Path.GetFileName(file));
 
                 Log($"moving {file} to {newPath}");
@@ -464,14 +461,13 @@ namespace Nimbie_Rename_UI
 
         private string WriteMD5File(string filePath)
         {
-            Log($"DEBUG: {filePath}");
-            byte[] hash = MD5.HashData(File.ReadAllBytes(filePath));
+            using var stream = File.OpenRead(filePath);
+            byte[] hash = MD5.HashData(stream);
             string md5 = Convert.ToHexString(hash).ToLowerInvariant();
-            Log($"DEBUG: {md5}");
             var md5Path = Path.ChangeExtension(filePath, ".md5");
             var md5Line = $"{md5}  {Path.GetFileName(filePath)}";
-            Log($"DEBUG {md5Line}");
             File.WriteAllText(md5Path, md5Line);
+            Log($"generated md5 `{md5}` for {Path.GetFileName(filePath)}");
             return md5;
         }
 

@@ -58,8 +58,6 @@
 			<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
 				<Button Padding="15,8" Name="RunButton" Content="Rename" Click="RunProcess"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 				<Button Padding="15,8" Name="UpdateButton" Content="Update Medialog" Click="UpdateMedialog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-				<Button Padding="15,8" Content="Clear Log" Click="ClearLog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-				<Button Padding="15,8" Content="Save Log" Click="SaveLog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
 				<Button Padding="15,8" Content="Exit" Click="ExitApp" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
 			</StackPanel>
 
