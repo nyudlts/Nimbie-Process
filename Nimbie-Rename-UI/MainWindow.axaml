@@ -5,70 +5,178 @@
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="420"
         x:Class="Nimbie_Rename_UI.MainWindow"
         Title="Nimbie Iso Process"
-		Icon="/Assets/cd.ico">
+        Icon="/Assets/cd.ico">
 
-		<Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
-			  Margin="15"
-			  RowSpacing="12">
+	<Grid Margin="15">
 
-			<!-- Title -->
-			<TextBlock Text="Nimbie ISO Renamer"
-					   FontSize="22"
-					   FontWeight="Bold" />
+		<TabControl>
 
-			<!-- Paths -->
-			<Border Grid.Row="1" Padding="10" CornerRadius="8" Background="#003153">
-				<StackPanel Spacing="10">
+			<!-- Existing Nimbie Process tab -->
+			<TabItem Header="Rename Nimbie Files">
 
-					<TextBlock Text="Nimbie Output Directory" Foreground="White"/>
-					<Grid ColumnDefinitions="Auto,*">
-						<Button Content="Browse" Click="PickImageFolder" Background="#CCCCCC" Grid.Column="0"/>
-						<TextBox Name="ImagePathBox" Margin="6,0,0,0" HorizontalAlignment="Stretch" Grid.Column="1" Background="#FFFFFF"/>
-					</Grid>
-					<Grid ColumnDefinitions="3*, *" RowDefinitions="Auto, Auto">
-						<TextBlock
-							Text="Nimbie User"
-							Foreground="White"
-							Grid.Column="0"
-							Grid.Row="0"/>
+				<Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
+                      Margin="5"
+                      RowSpacing="12">
 
-						<TextBlock
-							Text="Box Number"
-							Foreground="White"
-							Grid.Column="1"
-							Grid.Row="0"/>
+					<!-- Paths -->
+					<Border Grid.Row="1"
+                            Padding="10"
+                            CornerRadius="8"
+                            Background="#003153">
 
-						<TextBox
-							Name="NimbieUserBox"
-							Margin="0,4,6,0"
-							Grid.Column="0"
-							Grid.Row="1"/>
+						<StackPanel Spacing="10">
 
-						<TextBox
-							Name="NimbieBoxNum"
-							Margin="6,4,0,0"
-							Grid.Column="1"
-							Grid.Row="1"/>
-					</Grid>
-				</StackPanel>
-			</Border>
+							<TextBlock Text="Nimbie Output Directory"
+                                       Foreground="White"/>
+
+							<Grid ColumnDefinitions="Auto,*">
+								<Button Content="Browse"
+                                        Click="PickImageFolder"
+                                        Background="#CCCCCC"
+                                        Grid.Column="0"/>
+
+								<TextBox Name="ImagePathBox"
+                                         Margin="6,0,0,0"
+                                         HorizontalAlignment="Stretch"
+                                         Grid.Column="1"
+                                         Background="#FFFFFF"/>
+							</Grid>
+						</StackPanel>
+					</Border>
+
+					<!-- Actions -->
+					<StackPanel Grid.Row="3"
+                                Orientation="Horizontal"
+                                Spacing="10">
+
+						<Button Padding="15,8"
+                                Name="RunButton"
+                                Content="Rename Files"
+                                Click="RenameFiles"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
+
+						<Button Padding="15,8"
+                                Content="Exit"
+                                Click="ExitApp"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
+
+					</StackPanel>
+
+					<!-- Output -->
+					<Border Grid.Row="4"
+                            Padding="8"
+                            CornerRadius="8"
+                            Background="#003153">
+
+						<TextBox Name="OutputBox"
+                                 AcceptsReturn="True"
+                                 IsReadOnly="True"
+                                 FontFamily="Consolas"
+                                 Background="#FFFFFF"/>
+
+					</Border>
+
+				</Grid>
+
+			</TabItem>
+
+			<!-- Rename tab -->
+			<TabItem Header="Update Medialog">
+				<Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
+                      Margin="5"
+                      RowSpacing="12">
+
+					<!-- Paths -->
+					<Border Grid.Row="1"
+                            Padding="10"
+                            CornerRadius="8"
+                            Background="#003153">
+
+						<StackPanel Spacing="10">
+
+							<TextBlock Text="Nimbie Output Directory"
+                                       Foreground="White"/>
+
+							<Grid ColumnDefinitions="Auto,*">
+								<Button Content="Browse"
+                                        Click="PickRenameFolder"
+                                        Background="#CCCCCC"
+                                        Grid.Column="0"/>
+
+								<TextBox Name="RenamePathBox"
+                                         Margin="6,0,0,0"
+                                         HorizontalAlignment="Stretch"
+                                         Grid.Column="1"
+                                         Background="#FFFFFF"/>
+							</Grid>
+
+							<Grid ColumnDefinitions="3*,*"
+                                  RowDefinitions="Auto,Auto">
+
+								<TextBlock Text="Nimbie User"
+                                           Foreground="White"
+                                           Grid.Column="0"
+                                           Grid.Row="0"/>
+
+								<TextBlock Text="Box Number"
+                                           Foreground="White"
+                                           Grid.Column="1"
+                                           Grid.Row="0"/>
+
+								<TextBox Name="NimbieUserBox"
+                                         Margin="0,4,6,0"
+                                         Grid.Column="0"
+                                         Grid.Row="1"/>
+
+								<TextBox Name="NimbieBoxNum"
+                                         Margin="6,4,0,0"
+                                         Grid.Column="1"
+                                         Grid.Row="1"/>
+
+							</Grid>
+						</StackPanel>
+					</Border>
+					<StackPanel Grid.Row="3"
+			Orientation="Horizontal"
+			Spacing="10">
 
 
-			<!-- Actions -->
-			<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
-				<Button Padding="15,8" Name="RunButton" Content="Rename" Click="RunProcess"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-				<Button Padding="15,8" Name="UpdateButton" Content="Update Medialog" Click="UpdateMedialog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-				<Button Padding="15,8" Content="Clear Log" Click="ClearLog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-				<Button Padding="15,8" Content="Save Log" Click="SaveLog" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-				<Button Padding="15,8" Content="Exit" Click="ExitApp" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-			</StackPanel>
+						<Button Padding="15,8"
+                                Name="UpdateButton"
+                                Content="Update Medialog"
+                                Click="UpdateMedialog"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
 
+						<Button Padding="15,8"
+                                Content="Exit"
+                                Click="ExitApp"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
 
-			<!-- Output -->
-			<Border Grid.Row="4" Padding="8" CornerRadius="8" Background="#003153">
-				<TextBox Name="OutputBox" AcceptsReturn="True" IsReadOnly="True" FontFamily="Consolas" Background="#FFFFFF" />
-			</Border>
+					</StackPanel>
+					<!-- Output -->
+					<Border Grid.Row="4"
+                            Padding="8"
+                            CornerRadius="8"
+                            Background="#003153">
 
-		</Grid>
+						<TextBox Name="UpdateOutputBox"
+                                 AcceptsReturn="True"
+                                 IsReadOnly="True"
+                                 FontFamily="Consolas"
+                                 Background="#FFFFFF"/>
+
+					</Border>
+					
+				</Grid>
+				
+			</TabItem>
+
+		</TabControl>
+
+	</Grid>
 
 </Window>

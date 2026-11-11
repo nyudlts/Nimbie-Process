@@ -19,10 +19,14 @@ namespace Nimbie_Rename_UI
         const short channels = 2;
         bool testMode;
         string? imageDirectory;
+        string? updateDirectory;
         string? manifestFile;
         List<string>? filenames;
         List<string> metaFormats = new List<string>() {"audio", "video", "data" };
         Dictionary<string, string> imageFormats = new Dictionary<string, string>() { };
+        StreamWriter? LogWriter;
+        StreamWriter? UpdateLogWriter;
+        const string Version = "0.1.0-beta";
 
         public MainWindow()
         {
@@ -42,16 +46,19 @@ namespace Nimbie_Rename_UI
                 AllowMultiple = false
             });
 
-            if (folder != null && folder.Count > 0)
+            if (folder != null && folder.Count > 0) 
+            {
                 ImagePathBox.Text = folder[0].Path.LocalPath;
-        }
 
-        public async void ShowAbout(object? sender, RoutedEventArgs e)
-        {
-            Log("About");
-        }
+                //start the logWriter 
+                LogWriter = new StreamWriter(Path.Combine(ImagePathBox.Text!, "nimbie-rename.log"), append: false);
+                Log($"Nimbie Process, v{Version}");
+                Log("Writing log to " + ImagePathBox.Text!);
+            }
 
-        private async void PickManifestFile(object? sender, RoutedEventArgs e)
+;        }
+
+        private async void PickRenameFolder(object? sender, RoutedEventArgs e)
         {
             if (StorageProvider is null)
             {
@@ -59,11 +66,20 @@ namespace Nimbie_Rename_UI
                 return;
             }
 
-            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            var folder = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                AllowMultiple = false,
-                FileTypeFilter = null // You can add filters if needed
+                AllowMultiple = false
             });
+
+            if (folder != null && folder.Count > 0)
+            {
+                RenamePathBox.Text = folder[0].Path.LocalPath;
+                var LogLocation = Path.Combine(RenamePathBox.Text!, "nimbie-update.log");
+                UpdateLogWriter = new StreamWriter(LogLocation, append: false);
+                LogUpdate($"Nimbie Process, v{Version}");
+                LogUpdate("Writing log to " + LogLocation);
+            }
+
         }
 
         internal void Log(string message)
@@ -71,6 +87,18 @@ namespace Nimbie_Rename_UI
             Dispatcher.UIThread.Post(() =>
             {
                 OutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
+                LogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
+                LogWriter.Flush();
+            });
+        }
+
+        internal void LogUpdate(string message)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                UpdateOutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
+                UpdateLogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
+                UpdateLogWriter.Flush();
             });
         }
 
@@ -110,7 +138,7 @@ namespace Nimbie_Rename_UI
         }
 
 
-        private async void RunProcess(object? sender, RoutedEventArgs e)
+        private async void RenameFiles(object? sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
             {
@@ -158,11 +186,8 @@ namespace Nimbie_Rename_UI
                 MoveDirectories();
                 RemoveEmptyDirectories();
                 MoveOriginalFiles();
-                UpdateMedialog();
-                
             });
-            SaveLog(sender, e);
-            Log("done.");
+            Log("process complete");
         }
 
         private bool FindManifest()
@@ -211,7 +236,7 @@ namespace Nimbie_Rename_UI
 
         private void RemoveArtifacts()
         {
-            var restrictedExtensions = new List<string>() { ".cdt", ".ccd", ".DVD", ".MDS" };
+            var restrictedExtensions = new List<string>() { ".ccd", ".DVD", ".MDS" };
             var artifacts = Directory
                 .GetFiles(imageDirectory!)
                 .Where(f => restrictedExtensions.Contains(Path.GetExtension(f)))
@@ -399,6 +424,7 @@ namespace Nimbie_Rename_UI
                 var targetDirectory = Path.Combine(imageDirectory!, imgFormat.Value, imgFormat.Key);
                 Log($"Moving {sourceDirectory} to {targetDirectory}");
                 Directory.Move(sourceDirectory, targetDirectory);
+                
             }
         }
 
@@ -430,6 +456,10 @@ namespace Nimbie_Rename_UI
 
             foreach (var file in Directory.GetFiles(imageDirectory!))
             {
+                if (Path.GetFileName(file).Equals("nimbie-rename.log", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
                 var newPath = Path.Combine(originalDir, Path.GetFileName(file));
 
                 Log($"moving {file} to {newPath}");
@@ -440,38 +470,43 @@ namespace Nimbie_Rename_UI
 
         private async void UpdateMedialog(object? sender, RoutedEventArgs e)
         {
-            Log("Updating medialog");
-            if (string.IsNullOrWhiteSpace(ImagePathBox.Text))
+            LogUpdate("Updating medialog");
+            if (string.IsNullOrWhiteSpace(RenamePathBox.Text))
             {
                 return;
             }
-            imageDirectory = ImagePathBox.Text;
+            updateDirectory = RenamePathBox.Text;
 
-            if (string.IsNullOrWhiteSpace(imageDirectory))
+            if (string.IsNullOrWhiteSpace(updateDirectory))
             {
                 return;
             }
 
             if(string.IsNullOrWhiteSpace(NimbieUserBox.Text)) {
-                Log("Nimbie username can not be blank");
+                LogUpdate("Username can not be blank");
                 return;
             }
 
-            Medialog medialog = new(Log);
-            await medialog.UpdateMedialog(imageDirectory, NimbieUserBox.Text, NimbieBoxNum.Text);
+            if (string.IsNullOrWhiteSpace(NimbieBoxNum.Text))
+            {
+                LogUpdate("box number can not be blank");
+                return;
+            }
+
+            Medialog medialog = new(LogUpdate);
+            await medialog.UpdateMedialog(updateDirectory, NimbieUserBox.Text, NimbieBoxNum.Text!);
             
         }
 
         private string WriteMD5File(string filePath)
         {
-            Log($"DEBUG: {filePath}");
-            byte[] hash = MD5.HashData(File.ReadAllBytes(filePath));
+            using var stream = File.OpenRead(filePath);
+            byte[] hash = MD5.HashData(stream);
             string md5 = Convert.ToHexString(hash).ToLowerInvariant();
-            Log($"DEBUG: {md5}");
             var md5Path = Path.ChangeExtension(filePath, ".md5");
             var md5Line = $"{md5}  {Path.GetFileName(filePath)}";
-            Log($"DEBUG {md5Line}");
             File.WriteAllText(md5Path, md5Line);
+            Log($"generated md5 `{md5}` for {Path.GetFileName(filePath)}");
             return md5;
         }
 

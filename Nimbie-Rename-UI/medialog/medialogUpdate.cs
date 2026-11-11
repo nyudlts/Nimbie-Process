@@ -1,9 +1,8 @@
 ﻿using System;
-
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -47,7 +46,7 @@ namespace Nimbie_Rename_UI
                 _log($"ERROR: {ex.Message}");
                 return;
             }
-            _log($"using token: {MedialogToken}");
+            _log($"received token from medialog");
 
             foreach (var mediaType in new string[] {"audio","data","video"})
             {
@@ -73,10 +72,11 @@ namespace Nimbie_Rename_UI
                         {
                             imageFile = Path.Combine(mediaId + ".iso");
                         }
-                        _log($"type: {mediaType}, mediaId: {mediaId}, imageFile: {imageFile}");
+                        _log($"updating mediaId: {mediaId}, type: {mediaType}, imageFile: {imageFile}");
                         
                         await UpdateMedialogEntry(mediaId, imageFile, mediaType);
                     }
+                    
                     
                 } else
                 {
@@ -85,6 +85,7 @@ namespace Nimbie_Rename_UI
                 
 
             }
+            _log("Process complete");
         }
 
         private async Task SetToken()
@@ -102,11 +103,8 @@ namespace Nimbie_Rename_UI
             {
                 var (collectionCode, mediaNum) = ParseIdentifier(mediaId);
                 UInt32 resourceId = await getResourceId(collectionCode);
-                _log($"resourceId: {resourceId}");
                 string entryId = await GetEntryId(resourceId, mediaNum);
-                _log($"entryId: {entryId}");
                 Entry entry = await getEntry(entryId);
-                _log($"entry: {JsonSerializer.Serialize(entry)}");
 
                 //update logic 
                 entry.IsRefreshed = true;
@@ -139,26 +137,26 @@ namespace Nimbie_Rename_UI
                 entry.ImagedBy = NimbieUser!;
                 if (!string.IsNullOrEmpty(NimbieBoxNum))
                 {
-                    _log("Setting BoxNumber to " + NimbieBoxNum);
                     entry.BoxNumber = NimbieBoxNum!;
                 }
 
                 var imagePath = Path.Join(ImageDirectory, mediaType, mediaId, filename);
-                _log(imagePath);
-                _log(File.Exists(imagePath).ToString());
                 long size = new FileInfo(imagePath).Length;
                 entry.PhysicalSize = size;
 
-
-                _log($"updated entry: {JsonSerializer.Serialize(entry)}");
-
                 //update the entry
                 var updateResponse = await postUpdatedEntry(entry);
-                _log($"response: {updateResponse}");
+
+                HttpStatusCode statusCode = updateResponse.Item1;
+                if((int)statusCode != 202 || (int)statusCode != 201)
+                {
+                    //throw an error
+                }
+                _log($"status code: {updateResponse.Item1} response: {updateResponse.Item2}");
             }
             catch (Exception ex)
             {
-                _log($"ERROR: {ex.Message}");
+                _log($"[ERROR]  {ex.Message}");
             }
         }
 
@@ -207,16 +205,17 @@ namespace Nimbie_Rename_UI
             return response;
         }
 
-        private async Task<string> postUpdatedEntry(Entry entry)
+        private async Task<(HttpStatusCode, string)> postUpdatedEntry(Entry entry)
         {
             var postUpdateEntryRequest = new HttpRequestMessage(HttpMethod.Post, $"{AppConfig.Host}/api/v0/entries/{entry.Id}/update");
             postUpdateEntryRequest.Headers.Add("X-Medialog-Token", MedialogToken);
             postUpdateEntryRequest.Content = new StringContent(JsonSerializer.Serialize(entry), System.Text.Encoding.UTF8, "application/json");
             var postUpdateEntryResponse = await Client.SendAsync(postUpdateEntryRequest);
+            HttpStatusCode statusCode = postUpdateEntryResponse.StatusCode;
             var updateEntryJson = await postUpdateEntryResponse.Content.ReadAsStringAsync();
             var updateDoc = JsonDocument.Parse(updateEntryJson)
                 ?? throw new Exception($"could not post entry {entry.Id}");
-            return updateDoc.RootElement.ToString();
+            return (statusCode, updateDoc.RootElement.ToString());
         }
     }
 }
