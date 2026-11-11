@@ -4,7 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="420"
         x:Class="Nimbie_Rename_UI.MainWindow"
-        Title="Nimbie Process"
+		xmlns:local="using:Nimbie_Rename_UI"
+        Title="{x:Static local:AppInfo.Title}"
         Icon="/Assets/cd.ico">
 
 	<Grid Margin="15" RowDefinitions="Auto,*">

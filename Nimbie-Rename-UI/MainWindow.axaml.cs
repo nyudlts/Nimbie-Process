@@ -12,6 +12,13 @@ using System.Threading.Tasks;
 
 namespace Nimbie_Rename_UI
 {
+
+    public static class AppInfo
+    {
+        public const string Version = "0.1.0-beta";
+        public const string Title = $"Nimbie Process [v{Version}]";
+    }
+
     public partial class MainWindow : Window
     {
         const int sampleRate = 44100;
@@ -26,7 +33,7 @@ namespace Nimbie_Rename_UI
         Dictionary<string, string> imageFormats = new Dictionary<string, string>() { };
         StreamWriter? LogWriter;
         StreamWriter? UpdateLogWriter;
-        const string Version = "0.1.0-beta";
+        const string Version = AppInfo.Version;
 
         public MainWindow()
         {
