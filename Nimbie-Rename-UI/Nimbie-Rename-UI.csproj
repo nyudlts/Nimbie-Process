@@ -23,4 +23,7 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\cd.ico" />
   </ItemGroup>
+  <ItemGroup>
+	<AvaloniaResource Include="Assets\Fonts\**" />
+  </ItemGroup>
 </Project>

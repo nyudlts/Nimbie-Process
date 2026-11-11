@@ -33,6 +33,11 @@ namespace Nimbie_Rename_UI
             InitializeComponent();
         }
 
+        private async void ShowAbout(Object? sender, RoutedEventArgs e)
+        {
+            return;
+        }
+
         private async void PickImageFolder(object? sender, RoutedEventArgs e)
         {
             if (StorageProvider is null)
@@ -56,7 +61,7 @@ namespace Nimbie_Rename_UI
                 Log("Writing log to " + ImagePathBox.Text!);
             }
 
-;        }
+        }
 
         private async void PickRenameFolder(object? sender, RoutedEventArgs e)
         {
@@ -87,6 +92,8 @@ namespace Nimbie_Rename_UI
             Dispatcher.UIThread.Post(() =>
             {
                 OutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
+                OutputBox.CaretIndex = OutputBox.Text.Length;
+
                 LogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
                 LogWriter.Flush();
             });
@@ -97,6 +104,7 @@ namespace Nimbie_Rename_UI
             Dispatcher.UIThread.Post(() =>
             {
                 UpdateOutputBox.Text += $"{DateTime.Now:HH:mm:ss}  {message}\n";
+                UpdateOutputBox.CaretIndex = UpdateOutputBox.Text.Length;
                 UpdateLogWriter!.Write($"{DateTime.Now:HH:mm:ss}  {message}\n");
                 UpdateLogWriter.Flush();
             });
@@ -383,6 +391,18 @@ namespace Nimbie_Rename_UI
                     var originalCueFile = originalFilename.Replace(".wav", ".cue");
                     UpdateCueFile(originalCueFile, newFilename);
                     imageFormats.Add(newFilename, "audio");
+
+                    //check for a cuefile
+                    var originalCDTPath = Path.Join(originalPath, originalFilename.Replace(".wav", ".cdt"));
+                    if(Path.Exists(originalCDTPath))
+                    {
+                        var targetCDTFilename = newFilename + ".cdt";
+                        var targetCDTFilepath = Path.Combine(imageDirectory!, newFilename, targetCDTFilename);
+                        CopyFile(originalCDTPath, targetCDTFilepath, originalTimeStamp);
+                        
+                    }
+
+                    
                 } else
                 {
                     if (IsDVD(targetPath))

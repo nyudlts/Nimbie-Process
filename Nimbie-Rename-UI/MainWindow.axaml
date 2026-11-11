@@ -4,12 +4,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="420"
         x:Class="Nimbie_Rename_UI.MainWindow"
-        Title="Nimbie Iso Process"
+        Title="Nimbie Process"
         Icon="/Assets/cd.ico">
 
-	<Grid Margin="15">
-
-		<TabControl>
+	<Grid Margin="15" RowDefinitions="Auto,*">
+		
+		<TabControl Grid.Row="1">
 
 			<!-- Existing Nimbie Process tab -->
 			<TabItem Header="Rename Nimbie Files">
@@ -19,15 +19,15 @@
                       RowSpacing="12">
 
 					<!-- Paths -->
-					<Border Grid.Row="1"
+					<Border Grid.Row="2"
                             Padding="10"
                             CornerRadius="8"
-                            Background="#003153">
+                            Background="#E8E8E8">
 
 						<StackPanel Spacing="10">
 
-							<TextBlock Text="Nimbie Output Directory"
-                                       Foreground="White"/>
+							<TextBlock  Text="Nimbie Output Directory"
+                                        Foreground="#222222"/>
 
 							<Grid ColumnDefinitions="Auto,*">
 								<Button Content="Browse"
@@ -65,15 +65,16 @@
 					</StackPanel>
 
 					<!-- Output -->
-					<Border Grid.Row="4"
+					<Border Grid.Row="5"
                             Padding="8"
                             CornerRadius="8"
-                            Background="#003153">
+                            Background="#E8E8E8">
 
 						<TextBox Name="OutputBox"
                                  AcceptsReturn="True"
                                  IsReadOnly="True"
-                                 FontFamily="Consolas"
+								 TextWrapping="Wrap"
+                                 FontFamily="avares://Nimbie_Rename_UI/Assets/Fonts#JetBrains Mono, Consolas, monospace"
                                  Background="#FFFFFF"/>
 
 					</Border>
@@ -92,12 +93,12 @@
 					<Border Grid.Row="1"
                             Padding="10"
                             CornerRadius="8"
-                            Background="#003153">
+                            Background="#E8E8E8">
 
 						<StackPanel Spacing="10">
 
 							<TextBlock Text="Nimbie Output Directory"
-                                       Foreground="White"/>
+                                       Foreground="#222222"/>
 
 							<Grid ColumnDefinitions="Auto,*">
 								<Button Content="Browse"
@@ -116,31 +117,33 @@
                                   RowDefinitions="Auto,Auto">
 
 								<TextBlock Text="Nimbie User"
-                                           Foreground="White"
+                                           Foreground="#222222"
                                            Grid.Column="0"
                                            Grid.Row="0"/>
 
 								<TextBlock Text="Box Number"
-                                           Foreground="White"
+                                           Foreground="#222222"
                                            Grid.Column="1"
                                            Grid.Row="0"/>
 
 								<TextBox Name="NimbieUserBox"
                                          Margin="0,4,6,0"
                                          Grid.Column="0"
-                                         Grid.Row="1"/>
+                                         Grid.Row="1"
+										 Background="#FFFFFF"/>
 
 								<TextBox Name="NimbieBoxNum"
                                          Margin="6,4,0,0"
                                          Grid.Column="1"
-                                         Grid.Row="1"/>
+                                         Grid.Row="1"
+										 Background="#FFFFFF"/>
 
 							</Grid>
 						</StackPanel>
 					</Border>
-					<StackPanel Grid.Row="3"
-			Orientation="Horizontal"
-			Spacing="10">
+					<StackPanel Grid.Row="2"
+			                    Orientation="Horizontal"
+			                    Spacing="10">
 
 
 						<Button Padding="15,8"
@@ -161,12 +164,12 @@
 					<Border Grid.Row="4"
                             Padding="8"
                             CornerRadius="8"
-                            Background="#003153">
+                            Background="#E8E8E8">
 
 						<TextBox Name="UpdateOutputBox"
                                  AcceptsReturn="True"
                                  IsReadOnly="True"
-                                 FontFamily="Consolas"
+                                 FontFamily="avares://Nimbie_Rename_UI/Assets/Fonts#JetBrains Mono, Consolas, monospace"
                                  Background="#FFFFFF"/>
 
 					</Border>
