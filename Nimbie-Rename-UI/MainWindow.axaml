@@ -36,7 +36,7 @@
                                         Background="#CCCCCC"
                                         Grid.Column="0"/>
 
-								<TextBox Name="ImagePathBox"
+								<TextBox Name="RenamePathBox"
                                          Margin="6,0,0,0"
                                          HorizontalAlignment="Stretch"
                                          Grid.Column="1"
@@ -56,7 +56,14 @@
                                 Click="RenameFiles"
                                 HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center"/>
-
+						
+						<Button Padding="15,8"
+                                Name="ClearButton"
+                                Content="Clear"
+                                Click="ClearRenameOutput"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
+						
 						<Button Padding="15,8"
                                 Content="Exit"
                                 Click="ExitApp"
@@ -71,7 +78,7 @@
                             CornerRadius="8"
                             Background="#E8E8E8">
 
-						<TextBox Name="OutputBox"
+						<TextBox Name="RenameOutputBox"
                                  AcceptsReturn="True"
                                  IsReadOnly="True"
 								 TextWrapping="Wrap"
@@ -103,11 +110,11 @@
 
 							<Grid ColumnDefinitions="Auto,*">
 								<Button Content="Browse"
-                                        Click="PickRenameFolder"
+                                        Click="PickUpdateFolder"
                                         Background="#CCCCCC"
                                         Grid.Column="0"/>
 
-								<TextBox Name="RenamePathBox"
+								<TextBox Name="UpdatePathBox"
                                          Margin="6,0,0,0"
                                          HorizontalAlignment="Stretch"
                                          Grid.Column="1"
