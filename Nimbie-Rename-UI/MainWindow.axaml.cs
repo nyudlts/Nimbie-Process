@@ -405,7 +405,10 @@ namespace Nimbie_Rename_UI
             };
             Log($"{processStart.FileName} {string.Join(" ", processStart.ArgumentList.Select(a => $"\"{a}\""))}");
             using Process process = Process.Start(processStart)!;
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
+            Task.WaitAll(stdoutTask, stderrTask);
       
             var isoPath = imgPath.Replace(".bin", "01.iso");
             var targetPath = imgPath.Replace(".bin", ".iso");
