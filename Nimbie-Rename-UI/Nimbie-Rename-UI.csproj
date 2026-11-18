@@ -26,4 +26,10 @@
   <ItemGroup>
 	<AvaloniaResource Include="Assets\Fonts\**" />
   </ItemGroup>
+	<ItemGroup>
+		<Content Include="External\bchunk.exe">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
 </Project>
