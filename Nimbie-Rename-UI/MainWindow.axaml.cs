@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using DiscUtils.Iso9660;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -16,7 +17,7 @@ namespace Nimbie_Rename_UI
 
     public static class AppInfo
     {
-        public const string Version = "0.1.1-beta";
+        public const string Version = "0.1.3-beta";
         public const string Title = $"Nimbie Process [v{Version}]";
     }
 
@@ -43,6 +44,7 @@ namespace Nimbie_Rename_UI
         string? LogPath;
         TextBox? OutputBox;
         string? OriginalDir;
+        string bchunkPath = Path.Combine(AppContext.BaseDirectory,"External","bchunk.exe" );
 
         public MainWindow()
         {
@@ -185,12 +187,11 @@ namespace Nimbie_Rename_UI
                 RemoveArtifacts();
                 CreateDirectories();
                 ConvertExtensionsToLowerCase();
-                ConvertBinToWav();
-                
-                RenameFiles();
+                ConvertBins();
+                RenameImageFiles();
                 MoveDirectories();
-                RemoveEmptyDirectories();
                 MoveOriginalFiles();
+                RemoveEmptyDirectories();
                 
             });
             Log("process complete");
@@ -291,13 +292,34 @@ namespace Nimbie_Rename_UI
             }
         }
 
+        private void ConvertBins()
+        {
+            Log("CONVERTING BINS");
+            var allowedExtensions = new List<string>() { ".bin" };
+            var imgPaths = Directory
+               .GetFiles(imageDirectory!)
+               .Where(f => allowedExtensions.Contains(Path.GetExtension(f)))
+               .ToList();
+
+            foreach (string imgPath in imgPaths)
+            {
+                Log($"Testing {imgPath}");
+                if (DetermineIfBinIsAudio(imgPath))
+                {
+                    ConvertBinToWav(imgPath);
+                }
+                else
+                {
+                    ConvertBinToIso(imgPath);
+                }
+            }
+        }
+
         static bool DetermineIfBinIsAudio(string binPath)
         {
             var directory = Path.GetDirectoryName(binPath);
             var filenameWithoutExtension = Path.GetFileNameWithoutExtension(binPath);
             var cuePath = Path.Combine(directory!, filenameWithoutExtension + ".cue");
-
-            Console.WriteLine(Path.GetFileName(cuePath));
 
             var track = File.ReadLines(cuePath)
                 .FirstOrDefault(l => l.TrimStart()
@@ -314,65 +336,99 @@ namespace Nimbie_Rename_UI
                    parts[2].Equals("AUDIO", StringComparison.OrdinalIgnoreCase);
         }
 
-        private void ConvertBinToWav()
+
+
+        private void ConvertBinToWav(string imgPath)
         {
-            var allowedExtensions = new List<string>() { ".img", ".bin" };
-            var imgPaths = Directory
-                .GetFiles(imageDirectory!)
-                .Where(f => allowedExtensions.Contains(Path.GetExtension(f)))
-                .ToList();
+            
 
-            foreach(string imgPath in imgPaths)
+            string wavPath = "";
+            if(Path.GetExtension(imgPath) == ".img")
             {
-                string wavPath = "";
-                if(Path.GetExtension(imgPath) == ".img")
-                {
-                    wavPath = imgPath.Replace(".img", ".wav");
-                } else if (Path.GetExtension(imgPath) == ".bin") {
-                    wavPath = imgPath.Replace(".bin", ".wav");
-                }
-
-                if(DetermineIfBinIsAudio(imgPath)) 
-                {
-                    Log($"converting {imgPath} to {wavPath}");
-                    byte[] audioData = File.ReadAllBytes(imgPath);
-                    using (var fs = new FileStream(wavPath, FileMode.Create))
-                    using (var bw = new BinaryWriter(fs))
-                    {
-                        int byteRate = sampleRate * channels * bitsPerSample / 8;
-                        short blockAlign = (short)(channels * bitsPerSample / 8);
-
-                        // WAV header
-                        bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
-                        bw.Write(36 + audioData.Length);
-                        bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
-
-                        // fmt subchunk
-                        bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
-                        bw.Write(16); // PCM
-                        bw.Write((short)1); // PCM format
-                        bw.Write(channels);
-                        bw.Write(sampleRate);
-                        bw.Write(byteRate);
-                        bw.Write(blockAlign);
-                        bw.Write(bitsPerSample);
-
-                        // data subchunk
-                        bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
-                        bw.Write(audioData.Length);
-                        bw.Write(audioData);
-                    }
-
-                    File.SetCreationTimeUtc(wavPath, File.GetCreationTimeUtc(imgPath));
-                    File.SetLastWriteTimeUtc(wavPath, File.GetLastWriteTimeUtc(imgPath));
-                    File.SetLastAccessTimeUtc(wavPath, File.GetLastAccessTimeUtc(imgPath));
-
-                    //move the bin file to the original directory
-                    var targetFile = Path.Combine(OriginalDir!, Path.GetFileName(imgPath));
-                    Console.WriteLine($"Moving {imgPath} to {targetFile}");
-                    File.Move(imgPath, targetFile);
-                }
+                wavPath = imgPath.Replace(".img", ".wav");
+            } else if (Path.GetExtension(imgPath) == ".bin") {
+                wavPath = imgPath.Replace(".bin", ".wav");
             }
+                
+            Log($"converting {imgPath} to {wavPath}");
+            byte[] audioData = File.ReadAllBytes(imgPath);
+            using (var fs = new FileStream(wavPath, FileMode.Create))
+            using (var bw = new BinaryWriter(fs))
+            {
+                int byteRate = sampleRate * channels * bitsPerSample / 8;
+                short blockAlign = (short)(channels * bitsPerSample / 8);
+
+                // WAV header
+                bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                bw.Write(36 + audioData.Length);
+                bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+
+                // fmt subchunk
+                bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+                bw.Write(16); // PCM
+                bw.Write((short)1); // PCM format
+                bw.Write(channels);
+                bw.Write(sampleRate);
+                bw.Write(byteRate);
+                bw.Write(blockAlign);
+                bw.Write(bitsPerSample);
+
+                // data subchunk
+                bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                bw.Write(audioData.Length);
+                bw.Write(audioData);
+            }
+
+            File.SetCreationTimeUtc(wavPath, File.GetCreationTimeUtc(imgPath));
+            File.SetLastWriteTimeUtc(wavPath, File.GetLastWriteTimeUtc(imgPath));
+            File.SetLastAccessTimeUtc(wavPath, File.GetLastAccessTimeUtc(imgPath));
+
+            //move the bin file to the original directory
+            var targetFile = Path.Combine(OriginalDir!, Path.GetFileName(imgPath));
+            Console.WriteLine($"Moving {imgPath} to {targetFile}");
+            File.Move(imgPath, targetFile);
+        }
+
+        private void ConvertBinToIso(string imgPath)
+        {
+            var cuePath = imgPath.Replace(".bin", ".cue");
+            var filename = imgPath.Replace(".bin", "");
+            Log($"Converting {imgPath} to iso");
+            ProcessStartInfo processStart = new ProcessStartInfo
+            {
+                FileName = bchunkPath,
+                ArgumentList = { imgPath, cuePath, filename },
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            Log($"{processStart.FileName} {string.Join(" ", processStart.ArgumentList.Select(a => $"\"{a}\""))}");
+            using Process process = Process.Start(processStart)!;
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
+            process.WaitForExit();
+            Task.WaitAll(stdoutTask, stderrTask);
+      
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"bchunk failed for {imgPath} with exit code {process.ExitCode}.");
+            }
+
+            var isoPath = imgPath.Replace(".bin", "01.iso");
+            var targetPath = imgPath.Replace(".bin", ".iso");
+            File.Move(isoPath, targetPath);
+           
+            File.SetCreationTimeUtc(targetPath, File.GetCreationTimeUtc(imgPath));
+            File.SetLastWriteTimeUtc(targetPath, File.GetLastWriteTimeUtc(imgPath));
+            File.SetLastAccessTimeUtc(targetPath, File.GetLastAccessTimeUtc(imgPath));
+
+            //move the bin file to the original directory
+            var targetFile = Path.Combine(OriginalDir!, Path.GetFileName(imgPath));
+            Console.WriteLine($"Moving {imgPath} to {targetFile}");
+            File.Move(imgPath, targetFile);
+            
+
         }
 
         private void CreateDirectories()
@@ -411,9 +467,9 @@ namespace Nimbie_Rename_UI
 
         }
 
-        private void RenameFiles()
+        private void RenameImageFiles()
         {
-            var allowedExtensions = new[] { ".iso", ".wav", ".bin" };
+            var allowedExtensions = new[] { ".iso", ".wav"};
             var imageFiles = Directory
                 .GetFiles(imageDirectory!)
                 .Where(f => allowedExtensions.Contains(
@@ -421,6 +477,10 @@ namespace Nimbie_Rename_UI
                     StringComparer.OrdinalIgnoreCase))
                 .ToDictionary(f => f, f => File.GetLastWriteTime(f));
 
+            foreach(var imageFile in imageFiles.Keys)
+            {
+                Log($"DEBUG FOUND {imageFile}");
+            } 
             
             
             var sortedFileDates = imageFiles.OrderBy(x => x.Value).ToList();
@@ -434,6 +494,7 @@ namespace Nimbie_Rename_UI
                 var originalExtension = Path.GetExtension(originalPath).ToLower();
                 var targetFilename = newFilename + originalExtension;
                 var targetPath = Path.Combine(imageDirectory!, newFilename, targetFilename);
+             
                 CopyFile(originalPath, targetPath, originalTimeStamp);
                 WriteMD5File(targetPath);
 
@@ -451,7 +512,6 @@ namespace Nimbie_Rename_UI
                         var targetCDTFilename = newFilename + ".cdt";
                         var targetCDTFilepath = Path.Combine(imageDirectory!, newFilename, targetCDTFilename);
                         CopyFile(originalCDTPath, targetCDTFilepath, originalTimeStamp);
-                        
                     }
 
                     
