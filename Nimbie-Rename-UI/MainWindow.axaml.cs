@@ -17,7 +17,7 @@ namespace Nimbie_Rename_UI
 
     public static class AppInfo
     {
-        public const string Version = "0.1.3-beta";
+        public const string Version = "0.1.2-beta";
         public const string Title = $"Nimbie Process [v{Version}]";
     }
 
