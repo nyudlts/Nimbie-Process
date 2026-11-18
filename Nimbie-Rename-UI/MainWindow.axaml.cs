@@ -410,6 +410,11 @@ namespace Nimbie_Rename_UI
             process.WaitForExit();
             Task.WaitAll(stdoutTask, stderrTask);
       
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"bchunk failed for {imgPath} with exit code {process.ExitCode}.");
+            }
+
             var isoPath = imgPath.Replace(".bin", "01.iso");
             var targetPath = imgPath.Replace(".bin", ".iso");
             File.Move(isoPath, targetPath);
