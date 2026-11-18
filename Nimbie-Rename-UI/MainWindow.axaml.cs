@@ -397,7 +397,7 @@ namespace Nimbie_Rename_UI
             ProcessStartInfo processStart = new ProcessStartInfo
             {
                 FileName = bchunkPath,
-                Arguments = $"{imgPath} {cuePath} {filename}",
+                ArgumentList = { imgPath, cuePath, filename },
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
